@@ -1,6 +1,19 @@
 const board = document.querySelector(".board");
+const startButton = document.querySelector(".btn-start");
+const modal = document.querySelector(".modal");
+const startGameModal = document.querySelector(".start-game");
+const gameOverModal = document.querySelector(".game-over");
+const restartButton = document.querySelector(".btn-restart");
+const highScoreElement = document.querySelector("#hight-score");
+const scoreElement = document.querySelector("#score");
+const timeElement = document.querySelector("#time");
+
 const blockHeight = 50;
 const blockWeight = 50;
+
+let highScore = 0;
+let score = 0;
+let time = `00:00`;
 
 const cols = Math.floor(board.clientWidth / blockWeight);
 const rows = Math.floor(board.clientHeight / blockHeight);
@@ -12,7 +25,7 @@ let food = {
 };
 
 const blocks = [];
-const snake = [
+let snake = [
   {
     x: 1,
     y: 3,
@@ -45,8 +58,24 @@ function render() {
     head = { x: snake[0].x - 1, y: snake[0].y };
   }
   if (head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols) {
-    alert("Game Over");
     clearInterval(interval);
+    modal.style.display = "flex";
+    startGameModal.style.display = "none";
+    gameOverModal.style.display = "flex";
+    return;
+  }
+
+  if (head.x == food.x && head.y == food.y) {
+    blocks[`${food.x}-${food.y}`].classList.remove("food");
+    food = {
+      x: Math.floor(Math.random() * rows),
+      y: Math.floor(Math.random() * cols),
+    };
+    blocks[`${food.x}-${food.y}`].classList.add("food");
+    snake.unshift(head);
+
+    score += 10;
+    scoreElement.innerText = score;
   }
 
   snake.forEach((segment) => {
@@ -60,9 +89,34 @@ function render() {
   });
 }
 
-interval = setInterval(() => {
-  render();
-}, 300);
+startButton.addEventListener("click", () => {
+  modal.style.display = "none";
+  interval = setInterval(() => {
+    render();
+  }, 300);
+});
+
+restartButton.addEventListener("click", restartGame);
+
+function restartGame() {
+  blocks[`${food.x}-${food.y}`].classList.remove("food");
+  snake.forEach((segment) => {
+    blocks[`${segment.x}-${segment.y}`].classList.remove("fill");
+  });
+
+  modal.style.display = "none";
+  direction = "down";
+  snake = [{ x: 1, y: 3 }];
+
+  food = {
+    x: Math.floor(Math.random() * rows),
+    y: Math.floor(Math.random() * cols),
+  };
+
+  interval = setInterval(() => {
+    render();
+  }, 300);
+}
 
 addEventListener("keydown", (evt) => {
   if (evt.key === "ArrowUp") {
