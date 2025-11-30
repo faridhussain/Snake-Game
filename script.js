@@ -11,14 +11,18 @@ const timeElement = document.querySelector("#time");
 const blockHeight = 50;
 const blockWeight = 50;
 
-let highScore = 0;
+let highScore = localStorage.getItem("highScore") || 0;
 let score = 0;
-let time = `00:00`;
+let time = `00-00`;
+
+highScoreElement.innerText = highScore;
 
 const cols = Math.floor(board.clientWidth / blockWeight);
 const rows = Math.floor(board.clientHeight / blockHeight);
 
 let interval = null;
+let timerInterval = null;
+
 let food = {
   x: Math.floor(Math.random() * rows),
   y: Math.floor(Math.random() * cols),
@@ -38,7 +42,6 @@ for (let row = 0; row < rows; row++) {
     const block = document.createElement("div");
     block.classList.add("block");
     board.appendChild(block);
-    block.innerText = `${row}-${col}`;
     blocks[`${row}-${col}`] = block;
   }
 }
@@ -76,6 +79,11 @@ function render() {
 
     score += 10;
     scoreElement.innerText = score;
+
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem("highScore", highScore.toString());
+    }
   }
 
   snake.forEach((segment) => {
@@ -94,6 +102,17 @@ startButton.addEventListener("click", () => {
   interval = setInterval(() => {
     render();
   }, 300);
+  timerInterval = setInterval(() => {
+    let [min, sec] = time.split("-").map(Number);
+    if (sec == 59) {
+      min += 1;
+      sec = 0;
+    } else {
+      sec += 1;
+    }
+    time = `${min}-${sec}`;
+    timeElement.innerText = time;
+  }, 1000);
 });
 
 restartButton.addEventListener("click", restartGame);
@@ -103,6 +122,12 @@ function restartGame() {
   snake.forEach((segment) => {
     blocks[`${segment.x}-${segment.y}`].classList.remove("fill");
   });
+  score = 0;
+  time = `00-00`;
+
+  scoreElement.innerText = score;
+  timeElement.innerText = time;
+  highScoreElement.innerText = highScore;
 
   modal.style.display = "none";
   direction = "down";
